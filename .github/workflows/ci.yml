@@ -65,7 +65,7 @@ jobs:
     - name: Publish artifact
       uses: ncipollo/release-action@v1
       with:
-      artifacts: "sdl-jstest-v0.2.zip"
+        artifacts: "sdl-jstest-v0.2.zip"
         allowUpdates: true
         token: ${{ secrets.REPO_TOKEN }}
         bodyFile: "${{ github.workspace }}/RELEASE_NOTES.md"
