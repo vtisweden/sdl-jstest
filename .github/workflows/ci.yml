@@ -65,11 +65,11 @@ jobs:
     - name: Publish artifact
       uses: ncipollo/release-action@v1
       with:
-        artifacts: "sdl-jstest-$GIT_VERSION.zip"
+      artifacts: "sdl-jstest-v0.2.zip"
         allowUpdates: true
         token: ${{ secrets.REPO_TOKEN }}
         bodyFile: "${{ github.workspace }}/RELEASE_NOTES.md"
-        name: "sdl2-jstest Linux $GIT_VERSION"
+        name: "sdl2-jstest Linux"
         tag: v0.2
 
   windows:
@@ -116,11 +116,11 @@ jobs:
     - name: Publish artifact
       uses: ncipollo/release-action@v1
       with:
-        artifacts: "sdl-jstest-$GIT_VERSION.zip"
+        artifacts: "sdl-jstest-v0.2.zip"
         allowUpdates: true
         token: ${{ secrets.REPO_TOKEN }}
         bodyFile: "${{ github.workspace }}/RELEASE_NOTES.md"
-        name: "sdl2-jstest Windows $GIT_VERSION"
+        name: "sdl2-jstest Windows"
         tag: v0.2
 
   reports:
