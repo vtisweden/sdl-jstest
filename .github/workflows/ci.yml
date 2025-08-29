@@ -60,12 +60,12 @@ jobs:
       run: |
         GIT_VERSION=$(git describe --tags --abbrev=7 --match="v*.*")
         echo "GIT_VERSION=$GIT_VERSION" >> $GITHUB_ENV
-        7z a sdl-jstest-$GIT_VERSION.zip ./install/*
+        7z a sdl-jstest-linux-$GIT_VERSION.zip ./install/*
     # Upload the zip as release
     - name: Publish artifact
       uses: ncipollo/release-action@v1
       with:
-        artifacts: "sdl-jstest-${{env.GIT_VERSION}}.zip"
+        artifacts: "sdl-jstest-linux-${{env.GIT_VERSION}}.zip"
         allowUpdates: true
         token: ${{ secrets.REPO_TOKEN }}
         bodyFile: "${{ github.workspace }}/RELEASE_NOTES.md"
@@ -111,12 +111,12 @@ jobs:
       run: |
         $GIT_VERSION = git describe --tags --abbrev=7 --match="v*.*"
         echo "GIT_VERSION=$GIT_VERSION" >> $env:GITHUB_ENV
-        7z a sdl-jstest-$GIT_VERSION.zip .\install\*
+        7z a sdl-jstest-windows-$GIT_VERSION.zip .\install\*
     # Upload the zip as release
     - name: Publish artifact
       uses: ncipollo/release-action@v1
       with:
-        artifacts: "sdl-jstest-${{env.GIT_VERSION}}.zip"
+        artifacts: "sdl-jstest-windows-${{env.GIT_VERSION}}.zip"
         allowUpdates: true
         token: ${{ secrets.REPO_TOKEN }}
         bodyFile: "${{ github.workspace }}/RELEASE_NOTES.md"
