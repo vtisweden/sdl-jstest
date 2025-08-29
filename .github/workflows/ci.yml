@@ -61,16 +61,15 @@ jobs:
         GIT_VERSION=$(git describe --tags --abbrev=7 --match="v*.*")
         echo "GIT_VERSION=$GIT_VERSION" >> $GITHUB_ENV
         7z a sdl-jstest-$GIT_VERSION.zip ./install/*
-    - name: 📂 Upload artifact
-      if: ${{ github.event_name == 'push' }}
-      uses: vtisweden/sftp-action@v1.0.6
+    # Upload the zip as release
+    - name: Publish artifact
+      uses: ncipollo/release-action@v1
       with:
-        host: ${{ secrets.FTPS_SERVER }}
-        port: 22
-        username: ${{ secrets.FTPS_USER }}
-        password: ${{ secrets.FTPS_TOKEN }}
-        localPath: sdl-jstest-${{ env.GIT_VERSION }}.zip
-        remotePath: html/build/sdl-jstest/linux-x86-64/
+        artifacts: "sdl-jstest-$GIT_VERSION.zip"
+        allowUpdates: true
+        token: ${{ secrets.REPO_TOKEN }}
+        bodyFile: "${{ github.workspace }}/RELEASE_NOTES.md"
+        name: "sdl2-jstest Linux $GIT_VERSION"
 
   windows:
     runs-on: windows-2025
@@ -112,16 +111,15 @@ jobs:
         $GIT_VERSION = git describe --tags --abbrev=7 --match="v*.*"
         echo "GIT_VERSION=$GIT_VERSION" >> $env:GITHUB_ENV
         7z a sdl-jstest-$GIT_VERSION.zip .\install\*
-    - name: 📂 Upload artifact
-      if: ${{ github.event_name == 'push' }}
-      uses: vtisweden/sftp-action@v1.0.6
-      with:
-        host: ${{ secrets.FTPS_SERVER }}
-        port: 22
-        username: ${{ secrets.FTPS_USER }}
-        password: ${{ secrets.FTPS_TOKEN }}
-        localPath: sdl-jstest-${{ env.GIT_VERSION }}.zip
-        remotePath: html/build/sdl-jstest/win-msvc64/
+      # Upload the zip as release
+      - name: Publish artifact
+        uses: ncipollo/release-action@v1
+        with:
+          artifacts: "sdl-jstest-$GIT_VERSION.zip"
+          allowUpdates: true
+          token: ${{ secrets.REPO_TOKEN }}
+          bodyFile: "${{ github.workspace }}/RELEASE_NOTES.md"
+          name: "sdl2-jstest Windows $GIT_VERSION"
 
   reports:
     runs-on: ubuntu-22.04
