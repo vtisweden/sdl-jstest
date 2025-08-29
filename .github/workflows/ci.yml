@@ -46,7 +46,7 @@ jobs:
     - name: Build sdl-jstest
       id: build-sdl-jstest
       run: |
-        cmake -G Ninja -S . -DBUILD_SDL_JSTEST=OFF -DCMAKE_INSTALL_PREFIX=./install  -B build
+        cmake -G Ninja -S . -DCMAKE_BUILD_TYPE=Release -DBUILD_SDL_JSTEST=OFF -DCMAKE_INSTALL_PREFIX=./install  -B build
         cmake --build build/ --target install
     - name: Create build report
       id: build-report
@@ -97,7 +97,7 @@ jobs:
       id: build-sdl-jstest
       shell: cmd
       run: |
-        cmake.exe -G Ninja -S . -DBUILD_SDL_JSTEST=OFF -DCMAKE_INSTALL_PREFIX=./install -DUSE_WINCON=ON -B build
+        cmake.exe -G Ninja -S . -DCMAKE_BUILD_TYPE=Release -DBUILD_SDL_JSTEST=OFF -DCMAKE_INSTALL_PREFIX=./install -DUSE_WINCON=ON -B build
         cmake.exe --build build/ --target install
     - name: Create report
       id: report
