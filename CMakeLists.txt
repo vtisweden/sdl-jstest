@@ -124,6 +124,14 @@ if(BUILD_SDL2_JSTEST)
   install(FILES
     sdl2-jstest.svg
     DESTINATION ${CMAKE_INSTALL_DATADIR}/icons/hicolor/scalable/apps)
+
+  if(WIN32)
+    install(FILES
+      $<TARGET_FILE:SDL2::SDL2>
+      DESTINATION ${CMAKE_INSTALL_BINDIR}
+    )
+  endif()
+  include(InstallRequiredSystemLibraries)
 endif()
 
 # EOF #

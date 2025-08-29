@@ -1,0 +1,150 @@
+name: CI
+
+on:
+  push:
+    branches:
+    - master
+    - windows
+    - vti
+    - maintenance/v*
+  pull_request:
+    branches:
+    - master
+    - windows
+    - vti
+    - maintenance/v*
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
+  cancel-in-progress: true
+
+jobs:
+  linux:
+    runs-on: ubuntu-22.04
+    outputs:
+      build-report: ${{ steps.build-report.outputs.body }}
+    steps:
+    - name: Check-out sdl-jstest
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        lfs: true
+        ref: ${{ github.event.pull_request.head.ref }}
+        submodules: 'recursive'
+        token: ${{ secrets.REPO_TOKEN }}
+    - name: Set up system
+      run: |
+        sudo apt update
+        sudo apt install dos2unix
+    - name: Set up ccache
+      uses: hendrikmuhs/ccache-action@v1.2
+      with:
+        key: sdl-jstest-${{ runner.os }}
+    - name: Set up system
+      run: |
+        sudo apt install g++ cmake ninja-build libncurses-dev
+    - name: Build sdl-jstest
+      id: build-sdl-jstest
+      run: |
+        cmake -G Ninja -S . -DBUILD_SDL_JSTEST=OFF -DCMAKE_INSTALL_PREFIX=./install  -B build
+        cmake --build build/ --target install
+    - name: Create build report
+      id: build-report
+      if: ${{ github.event_name == 'pull_request' && failure() && steps.build-sdl-jstest.outcome == 'failure' }}
+      run: |
+        report="Linux build failed :face_with_spiral_eyes:"
+        echo "body=$report" >> $GITHUB_OUTPUT
+        echo "$report" >> $GITHUB_STEP_SUMMARY
+    - name: Create artifact
+      if: ${{ github.event_name == 'push' }}
+      run: |
+        GIT_VERSION=$(git describe --tags --abbrev=7 --match="v*.*")
+        echo "GIT_VERSION=$GIT_VERSION" >> $GITHUB_ENV
+        7z a sdl-jstest-$GIT_VERSION.zip ./install/*
+    - name: 📂 Upload artifact
+      if: ${{ github.event_name == 'push' }}
+      uses: vtisweden/sftp-action@v1.0.6
+      with:
+        host: ${{ secrets.FTPS_SERVER }}
+        port: 22
+        username: ${{ secrets.FTPS_USER }}
+        password: ${{ secrets.FTPS_TOKEN }}
+        localPath: sdl-jstest-${{ env.GIT_VERSION }}.zip
+        remotePath: html/build/sdl-jstest/linux-x86-64/
+
+  windows:
+    runs-on: windows-2025
+    outputs:
+      report: ${{ steps.report.outputs.body }}
+    steps:
+    - name: Check-out sdl-jstest
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        lfs: true
+        submodules: 'recursive'
+        token: ${{ secrets.REPO_TOKEN }}
+    - name: Set up sccache
+      uses: hendrikmuhs/ccache-action@v1.2
+      with:
+        key: sdl-jstest-${{ runner.os }}
+        variant: sccache
+    - name: Set up Visual Studio shell
+      uses: egor-tensin/vs-shell@v2
+      with:
+        arch: x64
+    - name: Build sdl-jstest
+      id: build-sdl-jstest
+      shell: cmd
+      run: |
+        cmake.exe -G Ninja -S . -DBUILD_SDL_JSTEST=OFF -DCMAKE_INSTALL_PREFIX=./install -DUSE_WINCON=ON -B build
+        cmake.exe --build build/ --target install
+    - name: Create report
+      id: report
+      if: ${{ github.event_name == 'pull_request' && failure() && steps.build-sdl-jstest.outcome == 'failure' }}
+      run: |
+        $report="Windows build failed :face_with_spiral_eyes:"
+        Write-Output "body=$report" >> $GITHUB_OUTPUT
+        Write-Output "$report" >> $GITHUB_STEP_SUMMARY
+    - name: Create artifact
+      if: ${{ github.event_name == 'push' }}
+      run: |
+        $GIT_VERSION = git describe --tags --abbrev=7 --match="v*.*"
+        echo "GIT_VERSION=$GIT_VERSION" >> $env:GITHUB_ENV
+        7z a sdl-jstest-$GIT_VERSION.zip .\install\*
+    - name: 📂 Upload artifact
+      if: ${{ github.event_name == 'push' }}
+      uses: vtisweden/sftp-action@v1.0.6
+      with:
+        host: ${{ secrets.FTPS_SERVER }}
+        port: 22
+        username: ${{ secrets.FTPS_USER }}
+        password: ${{ secrets.FTPS_TOKEN }}
+        localPath: sdl-jstest-${{ env.GIT_VERSION }}.zip
+        remotePath: html/build/sdl-jstest/win-msvc64/
+
+  reports:
+    runs-on: ubuntu-22.04
+    if: ${{ always() && github.event_name == 'pull_request' }}
+    needs: [linux, windows]
+    steps:
+    - name: Fail if any step was cancelled
+      if: ${{ contains(join(needs.*.result, ','), 'cancelled') }}
+      run: exit 1
+    - name: Report failure
+      if: ${{ contains(join(needs.*.result, ','), 'failure') }}
+      uses: peter-evans/create-or-update-comment@v4
+      with:
+        issue-number: ${{github.event.pull_request.number}}
+        body: |
+          ${{ needs.windows.outputs.report }}
+          ${{ needs.linux.outputs.build-report }}
+    - name: Fail if any step failed
+      if: ${{ contains(join(needs.*.result, ','), 'failure') }}
+      run: exit 1
+    - name: Report success
+      uses: peter-evans/create-or-update-comment@v4
+      with:
+        issue-number: ${{github.event.pull_request.number}}
+        body: |
+          All tests passed successfully :rocket: :heart:
