@@ -111,15 +111,15 @@ jobs:
         $GIT_VERSION = git describe --tags --abbrev=7 --match="v*.*"
         echo "GIT_VERSION=$GIT_VERSION" >> $env:GITHUB_ENV
         7z a sdl-jstest-$GIT_VERSION.zip .\install\*
-      # Upload the zip as release
-      - name: Publish artifact
-        uses: ncipollo/release-action@v1
-        with:
-          artifacts: "sdl-jstest-$GIT_VERSION.zip"
-          allowUpdates: true
-          token: ${{ secrets.REPO_TOKEN }}
-          bodyFile: "${{ github.workspace }}/RELEASE_NOTES.md"
-          name: "sdl2-jstest Windows $GIT_VERSION"
+    # Upload the zip as release
+    - name: Publish artifact
+      uses: ncipollo/release-action@v1
+      with:
+        artifacts: "sdl-jstest-$GIT_VERSION.zip"
+        allowUpdates: true
+        token: ${{ secrets.REPO_TOKEN }}
+        bodyFile: "${{ github.workspace }}/RELEASE_NOTES.md"
+        name: "sdl2-jstest Windows $GIT_VERSION"
 
   reports:
     runs-on: ubuntu-22.04
